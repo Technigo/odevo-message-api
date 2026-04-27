@@ -1,3 +1,4 @@
+require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
 const mongoose = require('mongoose')
@@ -8,22 +9,20 @@ const app = express()
 app.use(cors())
 app.use(bodyParser.json())
 
-const mongoUrl = process.env.MONGO_URL || "mongodb://localhost/thoughts"
-mongoose.connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: true })
-mongoose.Promise = Promise
-mongoose.set('useFindAndModify', false)
+const mongoUrl = process.env.MONGO_URL || "mongodb://localhost/messages"
+mongoose.connect(mongoUrl)
 
 mongoose.connection.once("open", () => {
-  console.log("Connected to mongodb")
+  console.log("Connected to mongodb", mongoUrl)
 })
 
 mongoose.connection.on("error", err => {
   console.error("connection error:", err)
 })
 
-const listEndpoints = require('express-list-endpoints');
+const listEndpoints = require('express-list-endpoints')
 
-const Thought = mongoose.model('Thought', {
+const Message = mongoose.model('Message', {
   message: {
     type: String,
     required: true,
@@ -44,40 +43,40 @@ app.get('/', async (req, res) => {
   res.send(listEndpoints(app))
 })
 
-app.get('/thoughts', async (req, res) => {
-  const thoughts = await Thought.find().sort({ createdAt: 'desc' }).limit(20).exec()
-  res.json(thoughts)
+app.get('/messages', async (req, res) => {
+  const messages = await Message.find().sort({ createdAt: 'desc' }).limit(20).exec()
+  res.json(messages)
 })
 
-app.post('/thoughts', async (req, res) => {
-  const thought = new Thought({ message: req.body.message, hearts: 0 })
+app.post('/messages', async (req, res) => {
+  const message = new Message({ message: req.body.message, hearts: 0 })
 
   try {
-    const saved = await thought.save()
+    const saved = await message.save()
     res.status(201).json(saved)
   } catch (err) {
-    res.status(400).json({ message: 'Could not save thought', errors: err.errors })
+    res.status(400).json({ message: 'Could not save message', errors: err.errors })
   }
 })
 
-app.post('/thoughts/:id/like', async (req, res) => {
+app.post('/messages/:id/like', async (req, res) => {
   try {
-    const thought = await Thought.findOneAndUpdate({ _id: req.params.id }, { $inc: { hearts: 1 } }, { new: true })
-    res.json(thought)
+    const message = await Message.findOneAndUpdate({ _id: req.params.id }, { $inc: { hearts: 1 } }, { new: true })
+    res.json(message)
   } catch (err) {
     res.status(400).json({ message: 'Could not save heart', errors: err.errors })
   }
 })
 
-app.delete('/thoughts/:id', async (req, res) => {
+app.delete('/messages/:id', async (req, res) => {
   try {
-    const thought = await Thought.findByIdAndDelete(req.params.id)
-    if (!thought) {
-      return res.status(404).json({ message: 'Thought not found' })
+    const message = await Message.findByIdAndDelete(req.params.id)
+    if (!message) {
+      return res.status(404).json({ message: 'Message not found' })
     }
-    res.json({ message: 'Thought deleted successfully' })
+    res.json({ message: 'Message deleted successfully' })
   } catch (err) {
-    res.status(400).json({ message: 'Could not delete thought', errors: err.errors })
+    res.status(400).json({ message: 'Could not delete message', errors: err.errors })
   }
 })
 
