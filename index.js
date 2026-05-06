@@ -1,8 +1,8 @@
-require('dotenv').config()
-const express = require('express')
-const cors = require('cors')
-const mongoose = require('mongoose')
-const listEndpoints = require('express-list-endpoints')
+import 'dotenv/config.js'
+import express from 'express'
+import cors from 'cors'
+import mongoose from 'mongoose'
+import listEndpoints from 'express-list-endpoints'
 
 const PORT = process.env.PORT || '3000'
 const app = express()
@@ -79,3 +79,5 @@ app.delete('/messages/:id', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Listening on port ${PORT}`)
 })
+
+export default app
